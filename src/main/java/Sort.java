@@ -245,6 +245,29 @@ public class Sort {
             System.out.println("ERROR InputOutput: couldn't close a file");
             return false;
         }
+
+        try {
+            fileWriter.close();
+        } catch (IOException e) {
+            System.out.println("ERROR InputOutput: couldn't close a file");
+            return false;
+        }
+        if (mode.contains("-d")) {
+            File reverseOrder = new File("temp.txt");
+            try {
+                reverseOrder.createNewFile();
+                FileWriter fw = new FileWriter("temp.txt", true);
+                BufferedWriter bw = new BufferedWriter(fw);
+                Scanner scanner = new Scanner(new File(destination));
+                while (scanner.hasNextLine()) bw.write(scanner.nextLine());
+                bw.close();
+                reverseOrder.delete();
+                scanner.close();
+            } catch (IOException e) {
+                System.out.println("ERROR InputOutput: couldn't create a file for reverse ordered sorting");
+                return false;
+            }
+        }
         return true;
     }
 }
