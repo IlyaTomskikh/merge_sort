@@ -148,6 +148,7 @@ public class Sort {
                 Scanner scanner = new Scanner(new File(destination));
                 while (scanner.hasNextLine()) bw.write(scanner.nextLine());
                 bw.close();
+                reverseOrder.delete();
                 scanner.close();
             } catch (IOException e) {
                 System.out.println("ERROR InputOutput: couldn't create a file for reverse ordered sorting");
@@ -174,10 +175,9 @@ public class Sort {
                 return false;
             }
 
-        int min;
+        String min;
         int indexOfMin = -1;
         List<String> stringValues = new ArrayList<>();
-        List<Integer> intValues = new ArrayList<>();
         int[] indexesToDelete;
         int tmp, iter = 0;
 
@@ -206,21 +206,13 @@ public class Sort {
                 if (indexesToDelete[i] == 1) {
                     scanners.remove(i);
                     stringValues.remove(i);
-                    intValues.remove(i);
                 }
 
             if (stringValues.isEmpty()) break;
 
-            for (int i = 0; i < stringValues.size(); ++i) {
-                if (indexesToDelete[i] == -1) {
-                    if (indexOfMin == -1) intValues.add(Integer.parseInt(stringValues.get(i)));
-                    else if (indexOfMin == i) intValues.set(i, Integer.parseInt(stringValues.get(i)));
-                }
-            }
-
-            min = Collections.min(intValues);
+            min = Collections.min(stringValues);
             indexOfMin = 0;
-            for (; indexOfMin < intValues.size(); ++indexOfMin) if (intValues.get(indexOfMin) == min) break;
+            for (; indexOfMin < stringValues.size(); ++indexOfMin) if (stringValues.get(indexOfMin) == min) break;
 
             try {
                 final String out = "iter " + iter + ": tried to write min = " + min + ", index = " + indexOfMin;
@@ -235,10 +227,10 @@ public class Sort {
             ++iter;
         } while (!scanners.isEmpty());
         iter = 0;
-        while (!intValues.isEmpty()) {
-            min = Collections.min(intValues);
+        while (!stringValues.isEmpty()) {
+            min = Collections.min(stringValues);
             indexOfMin = 0;
-            for (; indexOfMin < intValues.size(); ++indexOfMin) if (intValues.get(indexOfMin) == min) break;
+            for (; indexOfMin < stringValues.size(); ++indexOfMin) if (stringValues.get(indexOfMin) == min) break;
             try {
                 final String out = "iter " + iter + ": tried to write min = " + min + ", index = " + indexOfMin;
                 System.out.println(out);
@@ -248,7 +240,7 @@ public class Sort {
                 System.out.println("ERROR InputOutput: couldn't write in file" + destination);
                 break;
             }
-            intValues.remove(indexOfMin);
+            stringValues.remove(indexOfMin);
             ++iter;
         }
 
@@ -258,7 +250,6 @@ public class Sort {
             System.out.println("ERROR InputOutput: couldn't close a file");
             return false;
         }
-
         return true;
     }
 }
