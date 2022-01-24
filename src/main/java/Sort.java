@@ -66,25 +66,29 @@ public class Sort {
             if (stringValues.isEmpty()) break;
 
             for (int i = 0; i < stringValues.size(); ++i)
-                if (indexOfMin != i) intValues.add(Integer.parseInt(stringValues.get(i)));
-                else intValues.set(i, Integer.parseInt(stringValues.get(i)));
+                if (indexOfMin == -1) intValues.add(Integer.parseInt(stringValues.get(i)));
+                else if (indexOfMin == i) intValues.set(i, Integer.parseInt(stringValues.get(i)));
 
             min = Collections.min(intValues);
 
-            for (indexOfMin = 0; indexOfMin < intValues.size(); ++indexOfMin) if (intValues.get(indexOfMin) == min) break;
+            indexOfMin = 0;
 
-            indexesToDelete[indexOfMin] = 2;    //iTD == 2 means: we have already written this value, get next string
+            for (; indexOfMin < intValues.size(); ++indexOfMin) if (intValues.get(indexOfMin) == min) break;
+
+            //indexesToDelete[indexOfMin] = 2;    //iTD == 2 means: we have already written this value, get next string
 
             try {
                 final String out = "iter " + iter + ": tried to write " + min;
                 System.out.println(out);
                 fileWriter.write(String.valueOf(min));
+                fileWriter.write(System.lineSeparator());
             } catch (IOException e) {
                 System.out.println("ERROR InputOutput: couldn't write in file" + destination);
                 break;
             }
 
             ++iter;
+            if (iter > 20) break;   // FIXME: 24.01.2022 : temporary condition to avoid infinity loop
         } while (!stringValues.isEmpty());
 
         try {
