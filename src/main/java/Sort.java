@@ -78,7 +78,7 @@ public class Sort {
             //indexesToDelete[indexOfMin] = 2;    //iTD == 2 means: we have already written this value, get next string
 
             try {
-                final String out = "iter " + iter + ": tried to write " + min;
+                final String out = "iter " + iter + ": tried to write min = " + min + ", index = " + indexOfMin;
                 System.out.println(out);
                 fileWriter.write(String.valueOf(min));
                 fileWriter.write(System.lineSeparator());
