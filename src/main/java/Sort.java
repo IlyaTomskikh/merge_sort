@@ -35,7 +35,7 @@ public class Sort {
         int[] intValues, indexesToDelete = new int[stringValues.size()];
 
         int tmp = 0;
-        while (!stringValues.isEmpty()) {
+        do {
             Arrays.fill(indexesToDelete, -1);
 
             for (Scanner scanner: scanners)
@@ -66,13 +66,14 @@ public class Sort {
             int[] finalIntValues = intValues;
             indexOfMin = IntStream.range(0, intValues.length).filter(i -> finalMin == finalIntValues[i]).findFirst().getAsInt();
             try {
-                fileWriter.write(min);
+                System.out.println("tried to write " + min);
+                fileWriter.write(String.valueOf(min));
             } catch (IOException e) {
                 System.out.println("ERROR InputOutput: couldn't write in file" + destination);
                 break;
             }
 
-        }
+        } while (!stringValues.isEmpty());
 
         try {
             fileWriter.close();
