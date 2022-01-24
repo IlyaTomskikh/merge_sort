@@ -3,11 +3,6 @@ import java.util.*;
 
 public class Sort {
     public static void main(String[] args) {
-        //mode types:
-        //-a == по возрастанию
-        //-d == по убыванию
-        //-i == integers
-        //-s == strings
         String[] paths;
         String mode = "-a";
         String dest;
