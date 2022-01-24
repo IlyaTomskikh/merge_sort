@@ -1,10 +1,9 @@
 import java.io.*;
 import java.util.*;
+import java.util.stream.IntStream;
 
-public class Sort
-{
-    public static void main(String[] args)
-    {
+public class Sort {
+    public static void main(String[] args) {
         String[] paths = new String[args.length - 2];
         System.arraycopy(args, 2, paths, 0, paths.length);
         boolean flag = mergeSort(paths, args[1], args[0]);
@@ -13,78 +12,72 @@ public class Sort
     }
 
 
-    public static boolean mergeSort(String[] paths, String destination, String mode)
-    {
-        List<File> files = new ArrayList<>();
+    public static boolean mergeSort(String[] paths, String destination, String mode) {
         List<Scanner> scanners = new ArrayList<>();
         FileWriter fileWriter;
-        try
-        {
+        try {
             fileWriter = new FileWriter(destination, false);
-        }
-        catch (IOException e)
-        {
-            System.out.println("ERROR: InputOutput");
+        } catch (IOException e) {
+            System.out.println("ERROR InputOutput: couldn't open file" + destination);
             return false;
         }
         for (int ix = 0; ix < paths.length; ++ix)
-        {
-            files.add(ix, new File(paths[ix]));
-            try
-            {
-                scanners.add((new Scanner(files.get(ix))));
-            }
-            catch (FileNotFoundException e)
-            {
-                System.out.println("ERROR: FileNotFound");
+            try {
+                scanners.add((new Scanner(new File(paths[ix]))));
+            } catch (FileNotFoundException e) {
+                System.out.println("ERROR FileNotFound: couldn't open a file" + paths[ix]);
                 return false;
             }
-        }
 
-        ArrayList<Integer> elements = new ArrayList<>();
-        boolean checker = false;
         int min = 0;
-        do
-        {
-            for (int ix = 0; ix < scanners.size(); ++ix)
-                if(!scanners.get(ix).hasNextLine())
-                {
-                    files.set(ix, null);
-                    scanners.set(ix, null);
+        int indexOfMin = -1;
+        List<String> stringValues = new ArrayList<>();
+        int[] intValues, indexesToDelete = new int[stringValues.size()];
+
+        int tmp = 0;
+        while (!stringValues.isEmpty()) {
+            Arrays.fill(indexesToDelete, -1);
+
+            for (Scanner scanner: scanners)
+                if (scanner.hasNext()) {
+                    if (indexOfMin == scanners.indexOf(scanner) || indexOfMin == -1) stringValues.add(scanner.nextLine());
+                } else {
+                    stringValues.add("No value" + tmp);
+                    ++tmp;
                 }
-            // FIXME: 21.01.2022 
-            if (!checker)
-                for (Scanner scanner : scanners) elements.add(Integer.parseInt(scanner.nextLine()));
-            else
-            {
-                int indexOf = elements.indexOf(min);
-                if (scanners.get(indexOf) == null) elements.remove(indexOf);
-                else elements.set(indexOf, Integer.parseInt(scanners.get(indexOf).nextLine()));
-            }
-            // FIXME: 21.01.2022 
 
-            min = Collections.min(elements);
-            checker = true;
+            tmp ^= tmp;
 
-            try
-            {
-                final String toWrite;
-                toWrite = Integer.toString(min);
-                fileWriter.write(toWrite + System.lineSeparator());
-                System.out.println(toWrite + " has been written");
+            for (String stringValue : stringValues)
+                if (stringValue.equals("No value" + tmp)) {
+                    indexesToDelete[tmp] = 1;
+                    ++tmp;
+                }
+            for (int i = 0; i < indexesToDelete.length; ++i)
+                if (indexesToDelete[i] == 1) {
+                    scanners.remove(i);
+                    stringValues.remove(i);
+                }
+            if (stringValues.isEmpty()) break;
+            intValues = new int[stringValues.size()];
+            for (int i = 0; i < intValues.length; ++i) intValues[i] = Integer.parseInt(stringValues.get(i));
+            min = Arrays.stream(intValues).min().getAsInt();
+            int finalMin = min;
+            int[] finalIntValues = intValues;
+            indexOfMin = IntStream.range(0, intValues.length).filter(i -> finalMin == finalIntValues[i]).findFirst().getAsInt();
+            try {
+                fileWriter.write(min);
+            } catch (IOException e) {
+                System.out.println("ERROR InputOutput: couldn't write in file" + destination);
+                break;
             }
-            catch (IOException e)
-            {
-                System.out.println("ERROR: InputOutput");
-            }
-        } while (!elements.isEmpty());
-        
-        try
-        {
-            fileWriter.close();
+
         }
-        catch (IOException e)
-        {
+
+        try {
+            fileWriter.close();
+        } catch (IOException e) {
+            System.out.println("ERROR InputOutput: couldn't close a file");
             return false;
         }
         
