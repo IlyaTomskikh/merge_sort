@@ -42,6 +42,7 @@ public class Sort {
             System.out.println("ERROR InputOutput: couldn't open file" + destination);
             return false;
         }
+        //O(n)
         for (int ix = 0; ix < paths.length; ++ix)
             try {
                 scanners.add((new Scanner(new File(paths[ix]))));
@@ -57,10 +58,13 @@ public class Sort {
         int[] indexesToDelete;
         int tmp, iter = 0;
 
+        //O(n)
         do {
             tmp = 0;
+            //O(n)
             for (Scanner scanner: scanners) {
                 if (scanner.hasNext()) {
+                    //O(n)
                     if (indexOfMin == -1) stringValues.add(scanner.nextLine());
                     else if (indexOfMin == scanners.indexOf(scanner) && indexOfMin == tmp)
                         stringValues.set(indexOfMin, scanner.nextLine());
@@ -72,12 +76,14 @@ public class Sort {
             indexesToDelete = new int[scanners.size()];
 
             tmp = 0;
+            //O(n)
             for (String stringValue : stringValues) {
                 if (stringValue.equals("No value" + tmp)) indexesToDelete[tmp] = 1;
                 else indexesToDelete[tmp] = -1;
                 ++tmp;
             }
 
+            //O(n)
             for (int i = 0; i < indexesToDelete.length; ++i)
                 if (indexesToDelete[i] == 1) {
                     scanners.remove(i);
@@ -87,15 +93,17 @@ public class Sort {
 
             if (stringValues.isEmpty()) break;
 
+            //O(n) for{...}
             for (int i = 0; i < stringValues.size(); ++i) {
                 if (indexesToDelete[i] == -1) {
-                    if (indexOfMin == -1) intValues.add(Integer.parseInt(stringValues.get(i)));
-                    else if (indexOfMin == i) intValues.set(i, Integer.parseInt(stringValues.get(i)));
+                    if (indexOfMin == -1) intValues.add(Integer.parseInt(stringValues.get(i)));         //O(n)
+                    else if (indexOfMin == i) intValues.set(i, Integer.parseInt(stringValues.get(i)));  //O(n)
                 }
             }
 
-            min = Collections.min(intValues);
+            min = Collections.min(intValues);   //пропустил, так как не знаю реализацию, но полагаю, что O(n)
             indexOfMin = 0;
+            //O(n)
             for (; indexOfMin < intValues.size(); ++indexOfMin) if (intValues.get(indexOfMin) == min) break;
 
             try {
@@ -110,10 +118,13 @@ public class Sort {
 
             ++iter;
         } while (!scanners.isEmpty());
+        //внутри: O(n^2) + O(n) + O(n) + O(n^2) + O(n) = O(n^2)
         iter = 0;
+        //O(n)
         while (!intValues.isEmpty()) {
             min = Collections.min(intValues);
             indexOfMin = 0;
+            //O(n^2)
             for (; indexOfMin < intValues.size(); ++indexOfMin) if (intValues.get(indexOfMin) == min) break;
             try {
                 final String out = "iter " + iter + ": tried to write min = " + min + ", index = " + indexOfMin;
@@ -127,6 +138,8 @@ public class Sort {
             intValues.remove(indexOfMin);
             ++iter;
         }
+        
+        //все выше: O(n) + O(n^3) + O(n^3) = O(n^3)
 
         try {
             fileWriter.close();
@@ -141,7 +154,7 @@ public class Sort {
                 FileWriter fw = new FileWriter("temp.txt", true);
                 BufferedWriter bw = new BufferedWriter(fw);
                 Scanner scanner = new Scanner(new File(destination));
-                while (scanner.hasNextLine()) bw.write(scanner.nextLine());
+                while (scanner.hasNextLine()) bw.write(scanner.nextLine());//O(m)
                 bw.close();
                 reverseOrder.delete();
                 scanner.close();
@@ -150,6 +163,7 @@ public class Sort {
                 return false;
             }
         }
+        //все вместе: O(n^3)
         return true;
     }
 
