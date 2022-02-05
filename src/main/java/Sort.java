@@ -156,6 +156,7 @@ public class Sort {
         return true;
     }
 
+
     public static boolean mergeSortString(String[] paths, String destination, String mode) {
         List<Scanner> scanners = new ArrayList<>();
         FileWriter fileWriter;
