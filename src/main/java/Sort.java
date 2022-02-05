@@ -33,8 +33,10 @@ public class Sort {
     }
 
 
-    public static boolean mergeSort(String[] paths, String destination, String mode) {
-        List<Scanner> scanners = new ArrayList<>();
+    public static boolean mergeSort(String[] paths /* max size = paths.length * Integer.MAX_VALUE * 4 bytes */,
+                                    String destination /* size = destination.length * 4 bytes */,
+                                    String mode /* len = 4 => size = 8 bytes */) {
+        List<Scanner> scanners = new ArrayList<>();     //scanners.size() = number of files = k
         FileWriter fileWriter;
         try {
             fileWriter = new FileWriter(destination, false);
@@ -50,12 +52,12 @@ public class Sort {
                 return false;
             }
 
-        int min;
-        int indexOfMin = -1;
-        List<String> stringValues = new ArrayList<>();
-        List<Integer> intValues = new ArrayList<>();
-        int[] indexesToDelete;
-        int tmp, iter = 0;
+        int min;    //4 bytes
+        int indexOfMin = -1;    //4 bytes
+        List<String> stringValues = new ArrayList<>();  //max size = k * Integer.MAX_VALUE * 4 bytes
+        List<Integer> intValues = new ArrayList<>();    //max size = k * 4 bytes
+        int[] indexesToDelete;                          //max size = k * 4 bytes
+        int tmp, iter = 0;      //4 bytes, 4 bytes
 
         do {
             tmp = 0;
@@ -78,7 +80,7 @@ public class Sort {
                 ++tmp;
             }
 
-            for (int i = 0; i < indexesToDelete.length; ++i)
+            for (int i = 0; i < indexesToDelete.length; ++i)    //iterator i <-> 4 bytes
                 if (indexesToDelete[i] == 1) {
                     scanners.remove(i);
                     stringValues.remove(i);
@@ -87,7 +89,7 @@ public class Sort {
 
             if (stringValues.isEmpty()) break;
 
-            for (int i = 0; i < stringValues.size(); ++i) {
+            for (int i = 0; i < stringValues.size(); ++i) {     //iterator i <-> 4 bytes
                 if (indexesToDelete[i] == -1) {
                     if (indexOfMin == -1) intValues.add(Integer.parseInt(stringValues.get(i)));
                     else if (indexOfMin == i) intValues.set(i, Integer.parseInt(stringValues.get(i)));
@@ -99,7 +101,7 @@ public class Sort {
             for (; indexOfMin < intValues.size(); ++indexOfMin) if (intValues.get(indexOfMin) == min) break;
 
             try {
-                final String out = "iter " + iter + ": tried to write min = " + min + ", index = " + indexOfMin;
+                final String out = "iter " + iter + ": tried to write min = " + min + ", index = " + indexOfMin;    //out.length * 4 bytes
                 System.out.println(out);
                 fileWriter.write(String.valueOf(min));
                 fileWriter.write(System.lineSeparator());
@@ -110,13 +112,14 @@ public class Sort {
 
             ++iter;
         } while (!scanners.isEmpty());
+
         iter = 0;
         while (!intValues.isEmpty()) {
             min = Collections.min(intValues);
             indexOfMin = 0;
             for (; indexOfMin < intValues.size(); ++indexOfMin) if (intValues.get(indexOfMin) == min) break;
             try {
-                final String out = "iter " + iter + ": tried to write min = " + min + ", index = " + indexOfMin;
+                final String out = "iter " + iter + ": tried to write min = " + min + ", index = " + indexOfMin;    //out.length * 4 bytes
                 System.out.println(out);
                 fileWriter.write(String.valueOf(min));
                 fileWriter.write(System.lineSeparator());

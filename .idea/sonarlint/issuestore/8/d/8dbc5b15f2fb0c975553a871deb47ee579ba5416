@@ -1,0 +1,22 @@
+
+N	java:S106"9Replace this use of System.out or System.err by a logger.(¢ë†ˆ
+S	java:S106"9Replace this use of System.out or System.err by a logger.(œö÷òÿÿÿÿÿ
+m
+java:S3776"RRefactor this method to reduce its Cognitive Complexity from 20 to the 15 allowed.(…½”ýÿÿÿÿ
+F
+java:S1172"+Remove this unused method parameter "mode".(…½”ýÿÿÿÿ
+N	java:S106"9Replace this use of System.out or System.err by a logger.(®¢È©
+N	java:S106+"9Replace this use of System.out or System.err by a logger.(´ûìÜ
+?
+java:S5413;")Verify that "remove()" is used correctly.(¶ºä±
+B
+java:S1125?"'Remove the unnecessary boolean literal.(Üôýˆþÿÿÿÿ
+N	java:S106B"9Replace this use of System.out or System.err by a logger.(óá•‡
+Z	java:S106N"9Replace this use of System.out or System.err by a logger.(«•ÇÈþÿÿÿÿ8¹·¶ßç/
+U	java:S106R"9Replace this use of System.out or System.err by a logger.(®¢È©8Òð·ßç/
+O
+java:S1128"-Remove this unused import 'java.sql.Wrapper'.(³¿……ýÿÿÿÿ8‚˜¹ßç/
+Y
+java:S1155=">Use isEmpty() to check whether the collection is empty or not.(âŽì‹ûÿÿÿÿ
+^
+java:S2095"HUse try-with-resources or close this "FileWriter" in a "finally" clause.(øµ¸º
