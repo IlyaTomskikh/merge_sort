@@ -1,6 +1,9 @@
 import java.io.*;
-import java.util.*;
-
+import java.security.KeyPair;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 public class Sort {
     public static void main(String[] args) {
         String[] paths;
@@ -25,131 +28,82 @@ public class Sort {
             System.out.println("args[0] must contain atleast a type of file content");
             return;
         }
-        boolean flag;
-        if (mode.equals("-a-i") || mode.equals("-d-i")) flag = mergeSort(paths, dest, mode);
-        else flag = mergeSortString(paths, dest, mode);
+        boolean flag = mergeSort(paths, dest, mode);
         if (flag) System.out.println("Files have been sorted");
         else System.out.println("Some error appeared");
     }
 
 
-    public static boolean mergeSort(String[] paths /* max size = paths.length * Integer.MAX_VALUE * 4 bytes */,
-                                    String destination /* size = destination.length * 4 bytes */,
-                                    String mode /* len = 4 => size = 8 bytes */) {
-        List<Scanner> scanners = new ArrayList<>();     //scanners.size() = number of files = k
-        FileWriter fileWriter;
-        try {
-            fileWriter = new FileWriter(destination, false);
-        } catch (IOException e) {
-            System.out.println("ERROR InputOutput: couldn't open file" + destination);
-            return false;
-        }
-        for (int ix = 0; ix < paths.length; ++ix)
+    public static boolean mergeSort(String[] paths, String destination, String mode) {
+        List<Scanner> scanners = new ArrayList<>();
+        for (String path: paths) {
             try {
-                scanners.add((new Scanner(new File(paths[ix]))));
+                scanners.add(new Scanner(new File(path)));  //addition of a new scanner based on the path to the current input file
             } catch (FileNotFoundException e) {
-                System.out.println("ERROR FileNotFound: couldn't open a file" + paths[ix]);
+                System.out.println("Couldn't open file: " + path);
                 return false;
             }
-
-        int min;    //4 bytes
-        int indexOfMin = -1;    //4 bytes
-        List<String> stringValues = new ArrayList<>();  //max size = k * Integer.MAX_VALUE * 4 bytes
-        List<Integer> intValues = new ArrayList<>();    //max size = k * 4 bytes
-        int[] indexesToDelete;                          //max size = k * 4 bytes
-        int tmp, iter = 0;      //4 bytes, 4 bytes
-
-        do {
-            tmp = 0;
-            for (Scanner scanner: scanners) {
-                if (scanner.hasNext()) {
-                    if (indexOfMin == -1) stringValues.add(scanner.nextLine());
-                    else if (indexOfMin == scanners.indexOf(scanner) && indexOfMin == tmp)
-                        stringValues.set(indexOfMin, scanner.nextLine());
-                } else
-                    if(indexOfMin != -1) stringValues.set(tmp, "No value" + tmp);
-                    else stringValues.add("No value" + tmp);
-                ++tmp;
-            }
-            indexesToDelete = new int[scanners.size()];
-
-            tmp = 0;
-            for (String stringValue : stringValues) {
-                if (stringValue.equals("No value" + tmp)) indexesToDelete[tmp] = 1;
-                else indexesToDelete[tmp] = -1;
-                ++tmp;
-            }
-
-            for (int i = 0; i < indexesToDelete.length; ++i)    //iterator i <-> 4 bytes
-                if (indexesToDelete[i] == 1) {
-                    scanners.remove(i);
-                    stringValues.remove(i);
-                    intValues.remove(i);
-                }
-
-            if (stringValues.isEmpty()) break;
-
-            for (int i = 0; i < stringValues.size(); ++i) {     //iterator i <-> 4 bytes
-                if (indexesToDelete[i] == -1) {
-                    if (indexOfMin == -1) intValues.add(Integer.parseInt(stringValues.get(i)));
-                    else if (indexOfMin == i) intValues.set(i, Integer.parseInt(stringValues.get(i)));
-                }
-            }
-
-            min = Collections.min(intValues);
-            indexOfMin = 0;
-            for (; indexOfMin < intValues.size(); ++indexOfMin) if (intValues.get(indexOfMin) == min) break;
-
-            try {
-                final String out = "iter " + iter + ": tried to write min = " + min + ", index = " + indexOfMin;    //out.length * 4 bytes
-                System.out.println(out);
-                fileWriter.write(String.valueOf(min));
-                fileWriter.write(System.lineSeparator());
-            } catch (IOException e) {
-                System.out.println("ERROR InputOutput: couldn't write in file" + destination);
-                break;
-            }
-
-            ++iter;
-        } while (!scanners.isEmpty());
-
-        iter = 0;
-        while (!intValues.isEmpty()) {
-            min = Collections.min(intValues);
-            indexOfMin = 0;
-            for (; indexOfMin < intValues.size(); ++indexOfMin) if (intValues.get(indexOfMin) == min) break;
-            try {
-                final String out = "iter " + iter + ": tried to write min = " + min + ", index = " + indexOfMin;    //out.length * 4 bytes
-                System.out.println(out);
-                fileWriter.write(String.valueOf(min));
-                fileWriter.write(System.lineSeparator());
-            } catch (IOException e) {
-                System.out.println("ERROR InputOutput: couldn't write in file" + destination);
-                break;
-            }
-            intValues.remove(indexOfMin);
-            ++iter;
         }
 
-        try {
-            fileWriter.close();
-        } catch (IOException e) {
-            System.out.println("ERROR InputOutput: couldn't close a file");
-            return false;
+        List<String> lines = new ArrayList<>();
+        int counter = 0;
+        for (Scanner scanner: scanners) {
+            boolean flag = changeList("add", scanner, lines, counter);
+            if (flag) scanners.remove(counter);
+            ++counter;
         }
-        if (mode.contains("-d")) {
-            File reverseOrder = new File("temp.txt");
+        String minValue;
+        int minIndex = -1;
+        if (mode.contains("-a")) while (!lines.isEmpty()) {
+            if (minIndex != -1 && !scanners.isEmpty()) {
+                boolean flag = changeList("set", scanners.get(minIndex), lines, minIndex);
+                if (flag) scanners.remove(minIndex);
+            } else if (minIndex != -1) {
+                lines.remove(minIndex);
+            }
+
+            AbstractMap.SimpleEntry<Integer, String> pair = findMin(lines);
+            minIndex = pair.getKey();
+            minValue = pair.getValue();
+
+            FileWriter dest;
             try {
-                reverseOrder.createNewFile();
-                FileWriter fw = new FileWriter("temp.txt", true);
-                BufferedWriter bw = new BufferedWriter(fw);
-                Scanner scanner = new Scanner(new File(destination));
-                while (scanner.hasNextLine()) bw.write(scanner.nextLine());
-                bw.close();
-                reverseOrder.delete();
-                scanner.close();
+                dest = new FileWriter(destination, false);
             } catch (IOException e) {
-                System.out.println("ERROR InputOutput: couldn't create a file for reverse ordered sorting");
+                System.out.println("Couldn't open file: " + destination);
+                return false;
+            }
+            try {
+                dest.write(minValue);
+            } catch (IOException e) {
+                System.out.println("Couldn't write value: " + minValue);
+                return false;
+            }
+        }
+        else while (!lines.isEmpty()){
+            if (minIndex != -1 && !scanners.isEmpty()) {
+                boolean flag = changeList("set", scanners.get(minIndex), lines, minIndex);
+                if (flag) scanners.remove(minIndex);
+            } else if (minIndex != -1) {
+                lines.remove(minIndex);
+            }
+
+            AbstractMap.SimpleEntry<Integer, String> pair = findMin(lines);
+            minIndex = pair.getKey();
+            minValue = pair.getValue();
+
+            RandomAccessFile dest;
+            try {
+                dest = new RandomAccessFile(destination, "w");
+            } catch (FileNotFoundException e) {
+                System.out.println("Couldn't open file: " + destination);
+                return false;
+            }
+            try {
+                dest.seek(0);
+                dest.writeBytes(minValue);
+            } catch (IOException e) {
+                System.out.println("Negative seek offset");
                 return false;
             }
         }
@@ -158,122 +112,66 @@ public class Sort {
     //O(8) + 6*O(4) + O(paths.length * Integer.MAX_VALUE * 4) + O(destination.length * 4) + O(k * Integer.MAX_VALUE * 4) + O(k * 4)
     //+ O(k * 4) + O(out.length * 4) + O(out.length * 4)
 
+    /**
+     * @param scanner is the thread which is used to read the file
+     * @return a new line from the file
+     */
+    static String readLine(Scanner scanner) {
+        if (scanner != null && scanner.hasNextLine()) return scanner.nextLine();
+        else return " ";
+    }
 
-    public static boolean mergeSortString(String[] paths, String destination, String mode) {
-        List<Scanner> scanners = new ArrayList<>();
-        FileWriter fileWriter;
-        try {
-            fileWriter = new FileWriter(destination, false);
-        } catch (IOException e) {
-            System.out.println("ERROR InputOutput: couldn't open file" + destination);
-            return false;
-        }
-        for (int ix = 0; ix < paths.length; ++ix)
-            try {
-                scanners.add((new Scanner(new File(paths[ix]))));
-            } catch (FileNotFoundException e) {
-                System.out.println("ERROR FileNotFound: couldn't open a file" + paths[ix]);
-                return false;
-            }
+    /**
+     * @param line is a string value
+     * @return boolean value which says if the string contains ' ' value
+     */
+    static boolean hasSpace(String line) {
+        return line.contains(" ");
+    }
 
-        String min;
-        int indexOfMin = -1;
-        List<String> stringValues = new ArrayList<>();
-        int[] indexesToDelete;
-        int tmp, iter = 0;
+    /**
+     * @param list is the list of string values
+     * @return pair of minimum string as a value and its index as a key
+     */
+    static AbstractMap.SimpleEntry<Integer, String> findMin (List<String> list) {
+        int minIndex = 0;
+        String min = list.get(minIndex);
+        for (String string: list)
+            if (string.compareTo(min) == -1) min = string;
+        AbstractMap.SimpleEntry<Integer, String> pair = new AbstractMap.SimpleEntry<>(minIndex, min);
+        return pair;
+    }
 
-        do {
-            tmp = 0;
-            for (Scanner scanner: scanners) {
-                if (scanner.hasNext()) {
-                    if (indexOfMin == -1) stringValues.add(scanner.nextLine());
-                    else if (indexOfMin == scanners.indexOf(scanner) && indexOfMin == tmp)
-                        stringValues.set(indexOfMin, scanner.nextLine());
-                } else
-                if(indexOfMin != -1) stringValues.set(tmp, "No value" + tmp);
-                else stringValues.add("No value" + tmp);
-                ++tmp;
-            }
-            indexesToDelete = new int[scanners.size()];
-
-            tmp = 0;
-            for (String stringValue : stringValues) {
-                if (stringValue.equals("No value" + tmp)) indexesToDelete[tmp] = 1;
-                else indexesToDelete[tmp] = -1;
-                ++tmp;
-            }
-
-            for (int i = 0; i < indexesToDelete.length; ++i)
-                if (indexesToDelete[i] == 1) {
-                    scanners.remove(i);
-                    stringValues.remove(i);
+    /**
+     * @param mode      is responsible for the type of operation
+     * @param scanner   is the thread which is used to read the file
+     * @param lines     is the list of string values
+     * @param ix        is the index of the scanner
+     * @return boolean value which is responsible for removing the scanner (true => scanner has to be deleted)
+     */
+    static boolean changeList(String mode, Scanner scanner, List<String> lines, int ix){
+        String line = readLine(scanner);
+        boolean flag = false;
+        String switcher = mode.toLowerCase();
+        switch (switcher) {
+            case "set":
+                if (!hasSpace(line)) lines.set(ix, line);
+                else {
+                    flag = true;
+                    lines.remove(ix);
                 }
-
-            if (stringValues.isEmpty()) break;
-
-            min = Collections.min(stringValues);
-            indexOfMin = 0;
-            for (; indexOfMin < stringValues.size(); ++indexOfMin) if (stringValues.get(indexOfMin) == min) break;
-
-            try {
-                final String out = "iter " + iter + ": tried to write min = " + min + ", index = " + indexOfMin;
-                System.out.println(out);
-                fileWriter.write(String.valueOf(min));
-                fileWriter.write(System.lineSeparator());
-            } catch (IOException e) {
-                System.out.println("ERROR InputOutput: couldn't write in file" + destination);
                 break;
-            }
-
-            ++iter;
-        } while (!scanners.isEmpty());
-        iter = 0;
-        while (!stringValues.isEmpty()) {
-            min = Collections.min(stringValues);
-            indexOfMin = 0;
-            for (; indexOfMin < stringValues.size(); ++indexOfMin) if (stringValues.get(indexOfMin) == min) break;
-            try {
-                final String out = "iter " + iter + ": tried to write min = " + min + ", index = " + indexOfMin;
-                System.out.println(out);
-                fileWriter.write(String.valueOf(min));
-                fileWriter.write(System.lineSeparator());
-            } catch (IOException e) {
-                System.out.println("ERROR InputOutput: couldn't write in file" + destination);
+            case "add":
+                if (!hasSpace(line)) lines.add(line);
+                else {
+                    flag = true;
+                    lines.remove(ix);
+                }
                 break;
-            }
-            stringValues.remove(indexOfMin);
-            ++iter;
+            default:
+                System.out.println("Incorrect mode value: " + mode);
+                break;
         }
-
-        try {
-            fileWriter.close();
-        } catch (IOException e) {
-            System.out.println("ERROR InputOutput: couldn't close a file");
-            return false;
-        }
-
-        try {
-            fileWriter.close();
-        } catch (IOException e) {
-            System.out.println("ERROR InputOutput: couldn't close a file");
-            return false;
-        }
-        if (mode.contains("-d")) {
-            File reverseOrder = new File("temp.txt");
-            try {
-                reverseOrder.createNewFile();
-                FileWriter fw = new FileWriter("temp.txt", true);
-                BufferedWriter bw = new BufferedWriter(fw);
-                Scanner scanner = new Scanner(new File(destination));
-                while (scanner.hasNextLine()) bw.write(scanner.nextLine());
-                bw.close();
-                reverseOrder.delete();
-                scanner.close();
-            } catch (IOException e) {
-                System.out.println("ERROR InputOutput: couldn't create a file for reverse ordered sorting");
-                return false;
-            }
-        }
-        return true;
+        return flag;
     }
 }
