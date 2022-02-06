@@ -108,8 +108,6 @@ public class Sort {
         }
         return true;
     }
-    //O(8) + 6*O(4) + O(paths.length * Integer.MAX_VALUE * 4) + O(destination.length * 4) + O(k * Integer.MAX_VALUE * 4) + O(k * 4)
-    //+ O(k * 4) + O(out.length * 4) + O(out.length * 4)
 
     /**
      * @param scanner is the thread which is used to read the file
