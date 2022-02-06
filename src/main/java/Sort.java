@@ -1,5 +1,4 @@
 import java.io.*;
-import java.security.KeyPair;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
@@ -125,8 +124,8 @@ public class Sort {
      * @param line is a string value
      * @return boolean value which says if the string contains ' ' value
      */
-    static boolean hasSpace(String line) {
-        return line.contains(" ");
+    static boolean hasNoSpace(String line) {
+        return !line.contains(" ");
     }
 
     /**
@@ -137,9 +136,8 @@ public class Sort {
         int minIndex = 0;
         String min = list.get(minIndex);
         for (String string: list)
-            if (string.compareTo(min) == -1) min = string;
-        AbstractMap.SimpleEntry<Integer, String> pair = new AbstractMap.SimpleEntry<>(minIndex, min);
-        return pair;
+            if (string.compareTo(min) < 0) min = string;
+        return new AbstractMap.SimpleEntry<>(minIndex, min);
     }
 
     /**
@@ -155,14 +153,14 @@ public class Sort {
         String switcher = mode.toLowerCase();
         switch (switcher) {
             case "set":
-                if (!hasSpace(line)) lines.set(ix, line);
+                if (hasNoSpace(line)) lines.set(ix, line);
                 else {
                     flag = true;
                     lines.remove(ix);
                 }
                 break;
             case "add":
-                if (!hasSpace(line)) lines.add(line);
+                if (hasNoSpace(line)) lines.add(line);
                 else {
                     flag = true;
                     lines.remove(ix);
