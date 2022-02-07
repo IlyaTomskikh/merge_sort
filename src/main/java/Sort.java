@@ -51,6 +51,7 @@ public class Sort {
             if (flag) scanners.remove(counter);
             ++counter;
         }
+
         String minValue = null;
         int minIndex = -1;
         if (mode.contains("-a")) {
@@ -98,7 +99,7 @@ public class Sort {
         else {
             RandomAccessFile dest;
             try {
-                dest = new RandomAccessFile(destination, "w");
+                dest = new RandomAccessFile(destination, "rw");
             } catch (FileNotFoundException e) {
                 System.out.println("Couldn't open file: " + destination);
                 return false;
@@ -111,6 +112,7 @@ public class Sort {
                     lines.remove(minIndex);
                 }
 
+                if (lines.isEmpty()) break;
                 AbstractMap.SimpleEntry<Integer, String> pair = findMinString(lines);
                 minIndex = pair.getKey();
                 minValue = pair.getValue();
