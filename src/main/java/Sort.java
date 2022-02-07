@@ -65,9 +65,10 @@ public class Sort {
                 System.out.println("Couldn't open file: " + destination);
                 return false;
             }
+            boolean flag;
             while (!lines.isEmpty()) {
                 if (minIndex != -1 && !scanners.isEmpty()) {
-                    boolean flag = changeList("set", scanners.get(minIndex), lines, minIndex);
+                    flag = changeList("set", scanners.get(minIndex), lines, minIndex);
                     if (flag) scanners.remove(minIndex);
                 } else if (minIndex != -1) {
                     lines.remove(minIndex);
@@ -148,7 +149,6 @@ public class Sort {
      */
     static boolean hasNoSpace(String line) {
         return !line.contains(" ");
-        //return true;
     }
 
     /**
@@ -158,10 +158,11 @@ public class Sort {
     static AbstractMap.SimpleEntry<Integer, String> findMinString(List<String> list) {
         int minIndex = 0;
         String min = list.get(minIndex);
-        for (String string: list){
-            if (string.compareTo(min) < 0) min = string;
+        for (String string: list) if (string.compareTo(min) < 0) {
+            min = string;
             ++minIndex;
         }
+
         return new AbstractMap.SimpleEntry<>(minIndex, min);
     }
 
@@ -172,10 +173,11 @@ public class Sort {
     static AbstractMap.SimpleEntry<Integer, Integer> findMinInt(List<Integer> list) {
         int minIndex = 0;
         Integer min = list.get(minIndex);
-        for (Integer integer: list){
-            if (min > integer) min = integer;
+        for (Integer integer: list) if (min > integer) {
+            min = integer;
             ++minIndex;
         }
+
         return new AbstractMap.SimpleEntry<>(minIndex, min);
     }
 
