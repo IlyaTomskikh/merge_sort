@@ -68,6 +68,7 @@ public class Sort {
             boolean flag;
             while (!lines.isEmpty()) {
                 if (minIndex != -1 && !scanners.isEmpty()) {
+                    // TODO: 07.02.2022 manipulations with 'flag' (how to delete a scanner from scanners and an element from lines???)
                     flag = changeList("set", scanners.get(minIndex), lines, minIndex);
                     if (flag) scanners.remove(minIndex);
                 } else if (minIndex != -1) {
