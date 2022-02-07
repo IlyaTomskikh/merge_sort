@@ -51,20 +51,9 @@ public class Sort {
             if (flag) scanners.remove(counter);
             ++counter;
         }
-        String minValue;
+        String minValue = null;
         int minIndex = -1;
-        if (mode.contains("-a")) while (!lines.isEmpty()) {
-            if (minIndex != -1 && !scanners.isEmpty()) {
-                boolean flag = changeList("set", scanners.get(minIndex), lines, minIndex);
-                if (flag) scanners.remove(minIndex);
-            } else if (minIndex != -1) {
-                lines.remove(minIndex);
-            }
-
-            AbstractMap.SimpleEntry<Integer, String> pair = findMin(lines);
-            minIndex = pair.getKey();
-            minValue = pair.getValue();
-
+        if (mode.contains("-a")) {
             FileWriter dest;
             try {
                 dest = new FileWriter(destination, false);
@@ -72,25 +61,41 @@ public class Sort {
                 System.out.println("Couldn't open file: " + destination);
                 return false;
             }
+            while (!lines.isEmpty()) {
+                if (minIndex != -1 && !scanners.isEmpty()) {
+                    boolean flag = changeList("set", scanners.get(minIndex), lines, minIndex);
+                    if (flag) scanners.remove(minIndex);
+                } else if (minIndex != -1) {
+                    lines.remove(minIndex);
+                }
+
+                if (lines.isEmpty()) break;
+                if (mode.contains("-s")) {
+                    AbstractMap.SimpleEntry<Integer, String> pair = findMinString(lines);
+                    minIndex = pair.getKey();
+                    minValue = pair.getValue();
+                }
+                else if (mode.contains("-i")) {
+                    AbstractMap.SimpleEntry<Integer, Integer> pair = findMinInt(toInt(lines));
+                    minIndex = pair.getKey();
+                    minValue = Integer.toString(pair.getValue());
+                }
+
+                try {
+                    dest.write(minValue + System.lineSeparator());
+                    System.out.println("Current line = <" + minValue+ ">");
+                } catch (IOException e) {
+                    System.out.println("Couldn't write value: " + minValue);
+                    return false;
+                }
+            }
             try {
-                dest.write(minValue);
+                dest.close();
             } catch (IOException e) {
-                System.out.println("Couldn't write value: " + minValue);
-                return false;
+                System.out.println("Couldn't close file " + destination);
             }
         }
-        else while (!lines.isEmpty()){
-            if (minIndex != -1 && !scanners.isEmpty()) {
-                boolean flag = changeList("set", scanners.get(minIndex), lines, minIndex);
-                if (flag) scanners.remove(minIndex);
-            } else if (minIndex != -1) {
-                lines.remove(minIndex);
-            }
-
-            AbstractMap.SimpleEntry<Integer, String> pair = findMin(lines);
-            minIndex = pair.getKey();
-            minValue = pair.getValue();
-
+        else {
             RandomAccessFile dest;
             try {
                 dest = new RandomAccessFile(destination, "w");
@@ -98,12 +103,32 @@ public class Sort {
                 System.out.println("Couldn't open file: " + destination);
                 return false;
             }
+            while (!lines.isEmpty()) {
+                if (minIndex != -1 && !scanners.isEmpty()) {
+                    boolean flag = changeList("set", scanners.get(minIndex), lines, minIndex);
+                    if (flag) scanners.remove(minIndex);
+                } else if (minIndex != -1) {
+                    lines.remove(minIndex);
+                }
+
+                AbstractMap.SimpleEntry<Integer, String> pair = findMinString(lines);
+                minIndex = pair.getKey();
+                minValue = pair.getValue();
+
+
+                try {
+                    dest.seek(0);
+                    dest.writeBytes(minValue + System.lineSeparator());
+                    System.out.println("Current line = <" + minValue+ ">");
+                } catch (IOException e) {
+                    System.out.println("Negative seek offset");
+                    return false;
+                }
+            }
             try {
-                dest.seek(0);
-                dest.writeBytes(minValue);
+                dest.close();
             } catch (IOException e) {
-                System.out.println("Negative seek offset");
-                return false;
+                System.out.println("Couldn't close file " + destination);
             }
         }
         return true;
@@ -124,18 +149,33 @@ public class Sort {
      */
     static boolean hasNoSpace(String line) {
         return !line.contains(" ");
+        //return true;
     }
 
     /**
      * @param list is the list of string values
      * @return pair of minimum string as a value and its index as a key
      */
-    static AbstractMap.SimpleEntry<Integer, String> findMin (List<String> list) {
+    static AbstractMap.SimpleEntry<Integer, String> findMinString(List<String> list) {
         int minIndex = 0;
         String min = list.get(minIndex);
         for (String string: list)
             if (string.compareTo(min) < 0) min = string;
         return new AbstractMap.SimpleEntry<>(minIndex, min);
+    }
+
+    static AbstractMap.SimpleEntry<Integer, Integer> findMinInt(List<Integer> list) {
+        int minIndex = 0;
+        Integer min = list.get(minIndex);
+        for (Integer integer: list)
+            if (min > integer) min = integer;
+        return new AbstractMap.SimpleEntry<>(minIndex, min);
+    }
+
+    static List<Integer> toInt (List<String> list) {
+        List<Integer> newList = new ArrayList<>();
+        for (String string: list) newList.add(Integer.parseInt(string));
+        return newList;
     }
 
     /**
