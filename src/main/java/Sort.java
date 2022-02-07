@@ -5,6 +5,7 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+
 public class Sort {
     public static void main(String[] args) {
         String[] paths;
@@ -54,7 +55,7 @@ public class Sort {
             ++counter;
         }
 
-        String minValue = null;
+        String minValue;
         int minIndex = -1;
         if (mode.contains("-a")) {
             FileWriter dest;
@@ -78,11 +79,13 @@ public class Sort {
                     AbstractMap.SimpleEntry<Integer, String> pair = findMinString(lines);
                     minIndex = pair.getKey();
                     minValue = pair.getValue();
-                }
-                else if (mode.contains("-i")) {
+                } else if (mode.contains("-i")) {
                     AbstractMap.SimpleEntry<Integer, Integer> pair = findMinInt(toInt(lines));
                     minIndex = pair.getKey();
                     minValue = Integer.toString(pair.getValue());
+                } else {
+                    System.out.println("Wrong mode type [" + mode + "] must be changed");
+                    return false;
                 }
 
                 if (!putValue(dest, minValue)) return false;
@@ -114,7 +117,7 @@ public class Sort {
                 try {
                     dest.seek(0);
                     dest.writeBytes(minValue + System.lineSeparator());
-                    System.out.println("Current line = <" + minValue+ ">");
+                    System.out.println("Current line = <" + minValue + ">");
                 } catch (IOException e) {
                     System.out.println("Negative seek offset");
                     return false;
@@ -155,8 +158,10 @@ public class Sort {
     static AbstractMap.SimpleEntry<Integer, String> findMinString(List<String> list) {
         int minIndex = 0;
         String min = list.get(minIndex);
-        for (String string: list)
+        for (String string: list){
             if (string.compareTo(min) < 0) min = string;
+            ++minIndex;
+        }
         return new AbstractMap.SimpleEntry<>(minIndex, min);
     }
 
@@ -167,8 +172,10 @@ public class Sort {
     static AbstractMap.SimpleEntry<Integer, Integer> findMinInt(List<Integer> list) {
         int minIndex = 0;
         Integer min = list.get(minIndex);
-        for (Integer integer: list)
+        for (Integer integer: list){
             if (min > integer) min = integer;
+            ++minIndex;
+        }
         return new AbstractMap.SimpleEntry<>(minIndex, min);
     }
 
