@@ -1,3 +1,5 @@
+import org.jetbrains.annotations.NotNull;
+
 import java.io.*;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -33,7 +35,7 @@ public class Sort {
     }
 
 
-    public static boolean mergeSort(String[] paths, String destination, String mode) {
+    public static boolean mergeSort(String @NotNull [] paths, String destination, String mode) {
         List<Scanner> scanners = new ArrayList<>();
         for (String path: paths) {
             try {
@@ -71,6 +73,7 @@ public class Sort {
                 }
 
                 if (lines.isEmpty()) break;
+
                 if (mode.contains("-s")) {
                     AbstractMap.SimpleEntry<Integer, String> pair = findMinString(lines);
                     minIndex = pair.getKey();
@@ -82,19 +85,9 @@ public class Sort {
                     minValue = Integer.toString(pair.getValue());
                 }
 
-                try {
-                    dest.write(minValue + System.lineSeparator());
-                    System.out.println("Current line = <" + minValue+ ">");
-                } catch (IOException e) {
-                    System.out.println("Couldn't write value: " + minValue);
-                    return false;
-                }
+                if (!putValue(dest, minValue)) return false;
             }
-            try {
-                dest.close();
-            } catch (IOException e) {
-                System.out.println("Couldn't close file " + destination);
-            }
+            return closeFile(dest);
         }
         else {
             RandomAccessFile dest;
@@ -131,6 +124,7 @@ public class Sort {
                 dest.close();
             } catch (IOException e) {
                 System.out.println("Couldn't close file " + destination);
+                return false;
             }
         }
         return true;
@@ -166,6 +160,10 @@ public class Sort {
         return new AbstractMap.SimpleEntry<>(minIndex, min);
     }
 
+    /**
+     * @param list is the list of integer values
+     * @return pair of minimum integer as a value and its index as a key
+     */
     static AbstractMap.SimpleEntry<Integer, Integer> findMinInt(List<Integer> list) {
         int minIndex = 0;
         Integer min = list.get(minIndex);
@@ -174,10 +172,45 @@ public class Sort {
         return new AbstractMap.SimpleEntry<>(minIndex, min);
     }
 
+    /**
+     * @param list is a list of String values
+     * @return list of integer values
+     */
     static List<Integer> toInt (List<String> list) {
         List<Integer> newList = new ArrayList<>();
         for (String string: list) newList.add(Integer.parseInt(string));
         return newList;
+    }
+
+    /**
+     * @param fileWriter is a file which is used to write value
+     * @param value is a value forced to be written
+     * @return flag if the method has written the value
+     */
+    static boolean putValue(FileWriter fileWriter, String value) {
+        try {
+            fileWriter.write(value + System.lineSeparator());
+            System.out.println("Current line = <" + value + ">");
+        } catch (IOException e) {
+            closeFile(fileWriter);
+            System.out.println("Couldn't write value: " + value);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @param fileWriter is a file to be closed
+     * @return if we closed the file
+     */
+    static boolean closeFile (FileWriter fileWriter) {
+        try {
+            fileWriter.close();
+        } catch (IOException e) {
+            System.out.println("Couldn't close file " + fileWriter);
+            return false;
+        }
+        return true;
     }
 
     /**
