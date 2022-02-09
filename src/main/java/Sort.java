@@ -77,7 +77,7 @@ public class Sort {
                     }
                     minValue = pair.getValue();
 
-                if (!putValue(dest, minValue)) break;
+                if (putValue(dest, minValue)) break;
             }
             return closeFile(dest);
         }
@@ -101,7 +101,7 @@ public class Sort {
                 }
                 minValue = pair.getValue();
 
-                if (!putValue(dest, minValue)) break;
+                if (putValue(dest, minValue)) break;
             }
             return closeFile(dest);
         }
@@ -150,7 +150,7 @@ public class Sort {
     /**
      * @param fileWriter is a file which is used to write value
      * @param value is a value forced to be written
-     * @return flag if the method has written the value
+     * @return flag if the method hasn't written the value
      */
     static boolean putValue(@NotNull FileWriter fileWriter, String value) {
         try {
@@ -158,9 +158,9 @@ public class Sort {
         } catch (IOException e) {
             closeFile(fileWriter);
             System.out.println("Couldn't write value: " + value);
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     /**
