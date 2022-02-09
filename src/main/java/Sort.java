@@ -1,3 +1,4 @@
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -7,7 +8,7 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Sort {
-    public static void main(String[] args) {
+    public static void main(String @NotNull [] args) {
         String[] paths;
         String mode = "-a";
         String dest;
@@ -58,81 +59,52 @@ public class Sort {
         String minValue;
         int minIndex = -1;
         if (mode.contains("-a")) {
-            FileWriter dest;
-            try {
-                dest = new FileWriter(destination, false);
-            } catch (IOException e) {
-                System.out.println("Couldn't open file: " + destination);
-                return false;
-            }
-            boolean flag;
-            while (!lines.isEmpty()) {
-                if (minIndex != -1 && !scanners.isEmpty()) {
-                    // TODO: 07.02.2022 manipulations with 'flag' (how to delete a scanner from scanners and an element from lines???)
-                    flag = changeList("set", scanners.get(minIndex), lines, minIndex);
-                    if (flag) scanners.remove(minIndex);
-                } else if (minIndex != -1) {
-                    lines.remove(minIndex);
-                }
+            FileWriter dest = openFile(destination);
+            if (dest == null) return false;
 
-                if (lines.isEmpty()) break;
-
-                if (mode.contains("-s")) {
-                    AbstractMap.SimpleEntry<Integer, String> pair = findMinString(lines);
-                    minIndex = pair.getKey();
-                    minValue = pair.getValue();
-                } else if (mode.contains("-i")) {
-                    AbstractMap.SimpleEntry<Integer, Integer> pair = findMinInt(toInt(lines));
-                    minIndex = pair.getKey();
-                    minValue = Integer.toString(pair.getValue());
-                } else {
-                    System.out.println("Wrong mode type [" + mode + "] must be changed");
-                    return false;
-                }
-
-                if (!putValue(dest, minValue)) return false;
-            }
-            return closeFile(dest);
-        }
-        else {
-            RandomAccessFile dest;
-            try {
-                dest = new RandomAccessFile(destination, "rw");
-            } catch (FileNotFoundException e) {
-                System.out.println("Couldn't open file: " + destination);
-                return false;
-            }
             while (!lines.isEmpty()) {
                 if (minIndex != -1 && !scanners.isEmpty()) {
                     boolean flag = changeList("set", scanners.get(minIndex), lines, minIndex);
                     if (flag) scanners.remove(minIndex);
-                } else if (minIndex != -1) {
-                    lines.remove(minIndex);
-                }
+                } else if (minIndex != -1) lines.remove(minIndex);
 
                 if (lines.isEmpty()) break;
-                AbstractMap.SimpleEntry<Integer, String> pair = findMinString(lines);
+                    AbstractMap.SimpleEntry<Integer, String> pair = findMin(lines, mode);
+                    minIndex = pair.getKey();
+                    if (minIndex == -1) {
+                        System.out.println("Incorrect mode: " + mode);
+                        break;
+                    }
+                    minValue = pair.getValue();
+
+                if (!putValue(dest, minValue)) break;
+            }
+            return closeFile(dest);
+        }
+        else {
+            FileWriter dest = openFile(destination), temp1, temp2;
+            if (dest == null) return false;
+
+            while (!lines.isEmpty()) {
+                if (minIndex != -1 && !scanners.isEmpty()) {
+                    boolean flag = changeList("set", scanners.get(minIndex), lines, minIndex);
+                    if (flag) scanners.remove(minIndex);
+                } else if (minIndex != -1) lines.remove(minIndex);
+
+                if (lines.isEmpty()) break;
+
+                AbstractMap.SimpleEntry<Integer, String> pair = findMin(lines, mode);
                 minIndex = pair.getKey();
+                if (minIndex == -1) {
+                    System.out.println("Incorrect mode: " + mode);
+                    break;
+                }
                 minValue = pair.getValue();
 
-
-                try {
-                    dest.seek(0);
-                    dest.writeBytes(minValue + System.lineSeparator());
-                    System.out.println("Current line = <" + minValue + ">");
-                } catch (IOException e) {
-                    System.out.println("Negative seek offset");
-                    return false;
-                }
+                if (!putValue(dest, minValue)) break;
             }
-            try {
-                dest.close();
-            } catch (IOException e) {
-                System.out.println("Couldn't close file " + destination);
-                return false;
-            }
+            return closeFile(dest);
         }
-        return true;
     }
 
     /**
@@ -148,48 +120,31 @@ public class Sort {
      * @param line is a string value
      * @return boolean value which says if the string contains ' ' value
      */
-    static boolean hasNoSpace(String line) {
+    static boolean hasNoSpace(@NotNull String line) {
         return !line.contains(" ");
     }
 
     /**
+     * @param mode is a type of sorting
      * @param list is the list of string values
      * @return pair of minimum string as a value and its index as a key
      */
-    static AbstractMap.SimpleEntry<Integer, String> findMinString(List<String> list) {
-        int minIndex = 0;
-        String min = list.get(minIndex);
-        for (String string: list) if (string.compareTo(min) < 0) {
-            min = string;
-            ++minIndex;
-        }
-
+    @Contract("_, _ -> new")
+    static AbstractMap.@NotNull SimpleEntry<Integer, String> findMin(@NotNull List<String> list, @NotNull String mode) {
+        int minIndex;
+        String min = list.get(0);
+        if (mode.contains("-s")) {
+            for (String line: list) if (line.compareTo(min) < 0) min = line;
+        } else if (mode.contains("-i")) {
+            int intMin = Integer.parseInt(min);
+            for (String line: list) {
+                int intLine = Integer.parseInt(line);
+                if (intMin > intLine) intMin = intLine;
+            }
+            min = Integer.toString(intMin);
+        } else return new AbstractMap.SimpleEntry<>(-1, min);
+        minIndex = list.indexOf(min);
         return new AbstractMap.SimpleEntry<>(minIndex, min);
-    }
-
-    /**
-     * @param list is the list of integer values
-     * @return pair of minimum integer as a value and its index as a key
-     */
-    static AbstractMap.SimpleEntry<Integer, Integer> findMinInt(List<Integer> list) {
-        int minIndex = 0;
-        Integer min = list.get(minIndex);
-        for (Integer integer: list) if (min > integer) {
-            min = integer;
-            ++minIndex;
-        }
-
-        return new AbstractMap.SimpleEntry<>(minIndex, min);
-    }
-
-    /**
-     * @param list is a list of String values
-     * @return list of integer values
-     */
-    static List<Integer> toInt (List<String> list) {
-        List<Integer> newList = new ArrayList<>();
-        for (String string: list) newList.add(Integer.parseInt(string));
-        return newList;
     }
 
     /**
@@ -197,10 +152,9 @@ public class Sort {
      * @param value is a value forced to be written
      * @return flag if the method has written the value
      */
-    static boolean putValue(FileWriter fileWriter, String value) {
+    static boolean putValue(@NotNull FileWriter fileWriter, String value) {
         try {
             fileWriter.write(value + System.lineSeparator());
-            System.out.println("Current line = <" + value + ">");
         } catch (IOException e) {
             closeFile(fileWriter);
             System.out.println("Couldn't write value: " + value);
@@ -210,10 +164,24 @@ public class Sort {
     }
 
     /**
+     * @param path - path to existing file
+     * @return opened file to write something
+     */
+    static FileWriter openFile (String path) {
+        FileWriter fileWriter = null;
+        try {
+            fileWriter = new FileWriter(path, false);
+        } catch (IOException e) {
+            System.out.println("Couldn't open file: " + path);
+        }
+        return fileWriter;
+    }
+
+    /**
      * @param fileWriter is a file to be closed
      * @return if we closed the file
      */
-    static boolean closeFile (FileWriter fileWriter) {
+    static boolean closeFile (@NotNull FileWriter fileWriter) {
         try {
             fileWriter.close();
         } catch (IOException e) {
@@ -230,7 +198,7 @@ public class Sort {
      * @param ix        is the index of the scanner
      * @return boolean value which is responsible for removing the scanner (true => scanner has to be deleted)
      */
-    static boolean changeList(String mode, Scanner scanner, List<String> lines, int ix){
+    static boolean changeList(@NotNull String mode, Scanner scanner, List<String> lines, int ix) {
         String line = readLine(scanner);
         boolean flag = false;
         String switcher = mode.toLowerCase();
@@ -244,15 +212,29 @@ public class Sort {
                 break;
             case "add":
                 if (hasNoSpace(line)) lines.add(line);
-                else {
-                    flag = true;
-                    lines.remove(ix);
-                }
+                else flag = true;
                 break;
             default:
                 System.out.println("Incorrect mode value: " + mode);
                 break;
         }
         return flag;
+    }
+
+    /**
+     * @param aSortedFile is a file with containing information
+     * @param fileWriter is a new file
+     * @return if method actually worked
+     */
+    static boolean rewrite (File aSortedFile,  FileWriter fileWriter) throws FileNotFoundException {
+        // TODO: 09.02.2022 make this:
+        /*
+        *
+        * BEFORE_CYCLE: def tempFile
+        * CYCLE: line = aSortedFile.getLine() -> fileWriter.putLine(line) -> fileWriter.append(tempFile) -> tempFile = copyOf(fileWriter)
+        * AFTER_CYCLE: tempFile.delete() -> fileWriter.close()
+        *
+        * */
+        return true;
     }
 }
